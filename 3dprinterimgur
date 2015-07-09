@@ -1,0 +1,75 @@
+# The MIT License (MIT)
+
+# Copyright (c) 2015 daned33(Daniel Edwards)
+
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+# THE SOFTWARE.
+
+# load up the modules
+
+from PIL import Image
+from PIL import ImageFont
+from PIL import ImageDraw 
+from PIL import PSDraw
+import os
+import time
+import re
+import datetime
+import json
+import requests
+from imgurpython import ImgurClient
+
+
+
+client_id = '41e6d47c5d4502b'
+client_secret = 'f8c8eb19c4b50f3f7d02f6d7a9120e0507089193'
+access_token = '0e291e869c074343a84a539f9647ee93cbe2dfe6'
+refresh_token = '7c3e7206c0d043d50ebaaf13177eb069821bd40f'
+capture_path = 'OctoPrint/captures/'
+webcam_url = 'ultimaker.local:8080/?action=snapshot'
+watermarktext = 'Helsinki Hacklab - Ultimaker Webcam'
+
+client = ImgurClient(client_id, client_secret, access_token, refresh_token)
+
+
+
+ts = time.time()
+ts = str(datetime.datetime.fromtimestamp(ts).strftime('%d-%m-%Y.%H:%M:%S'))
+
+#os.system('wget -O ' + capture_path + 'printer-' + ts +'.jpg ' + webcam_url)
+
+myimage = Image.open(capture_path + 'printer-' + ts +'.jpg')
+myimage.load()
+draw = ImageDraw.Draw(myimage)
+draw.rectangle((640, 460, 0, 480), fill='black')
+draw.text((300, 465), watermarktext + ' ' + ts, fill='White')
+myimage.save(capture_path + 'printer-' + ts +'.jpg')
+
+imgurconfig = {
+		'album': 'yBb1P',  #original = zWUTp   #test = yBb1P
+		'name':  'Ultimaker capture at ' + ts,
+		'title': 'Ultimaker capture at ' + ts,
+		'description': 'Helsinki hacklab\'s Ultimaker 3D printer webcam captured at ' + ts
+	}
+
+imgurdata = client.upload_from_path(capture_path + 'printer-' + ts +'.jpg', config=imgurconfig, anon=False)
+link = str(imgurdata['link'])
+link + ' ' + ts
+imgurconfig = 0
+
+os.system('rm OctoPrint/captures/printer-' + ts +'.jpg')
